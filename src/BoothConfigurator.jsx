@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as THREE from "three";
+import lowbakeLogo from "./lowbake-logo.png";
 
 var PAD_WIDTH=0.75, PAD_HEIGHTS=[1.0,1.2,1.5,2.0], PLENUM_DEPTH=1.05, DESK_PLENUM_DEPTH=0.6;
 var DESK_LIFT=0.9, DESK_SHELF_DEPTH=0.6, DESK_THICK=0.04, DESK_WALL_DEPTH=0.6;
@@ -327,7 +328,7 @@ function QuoteModal({config,onClose,boothLabel,totalRoof,totalWall,fCols,activeP
         {/* Header */}
         <div style={{padding:"20px 24px 16px",borderBottom:"1px solid "+BC,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.15em",color:A,textTransform:"uppercase",marginBottom:4}}>Lowbake</div>
+            <img src={lowbakeLogo} alt="Lowbake" style={{height:24,display:"block",marginBottom:6}}/>
             <div style={{fontSize:18,fontWeight:700,color:TP}}>{sent?"Quote Requested!":"Request a Quote"}</div>
           </div>
           <button onClick={onClose} style={{background:"none",border:"none",color:TS,fontSize:24,cursor:"pointer",padding:"4px 8px"}}>✕</button>
@@ -498,7 +499,7 @@ export default function BoothConfigurator(){
       {/* 3D Viewport */}
       <div style={{flex:1,position:"relative",minWidth:0,minHeight:isMobile?"100vh":"auto"}}>
         <canvas ref={canvasRef} style={{display:"block",width:"100%",height:"100%",cursor:"grab",touchAction:"none"}}/>
-        <div style={{position:"absolute",top:isMobile?12:20,left:isMobile?16:24,pointerEvents:"none"}}><div style={{fontSize:isMobile?10:11,fontWeight:700,letterSpacing:"0.2em",color:A,textTransform:"uppercase",opacity:0.9}}>Lowbake</div><div style={{fontSize:isMobile?14:16,fontWeight:700,color:"#1a2a40",marginTop:2}}>{boothLabel}</div></div>
+        <div style={{position:"absolute",top:isMobile?12:20,left:isMobile?16:24,pointerEvents:"none"}}><img src={lowbakeLogo} alt="Lowbake" style={{height:isMobile?28:36,display:"block",opacity:0.95}}/><div style={{fontSize:isMobile?14:16,fontWeight:700,color:"#1a2a40",marginTop:4}}>{boothLabel}</div></div>
         {/* Controls hint — desktop only */}
         {!isMobile&&<div style={{position:"absolute",bottom:16,left:24,pointerEvents:"none",display:"flex",gap:16}}>{[["Drag","Rotate"],["Shift+Drag","Pan"],["Scroll","Zoom"]].map(function(pr){return(<div key={pr[1]} style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:10,color:"#fff",background:"rgba(40,88,165,0.7)",padding:"3px 8px",borderRadius:4,fontWeight:600}}>{pr[0]}</span><span style={{fontSize:11,color:"#4a5568"}}>{pr[1]}</span></div>);})}</div>}
         {/* Mobile: floating configure button */}
