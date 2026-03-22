@@ -372,7 +372,7 @@ function QuoteModal({config,onClose,boothLabel,totalRoof,totalWall,fCols,activeP
               {[
                 {l:"Equipment",v:boothLabel},
                 {l:"Internal Width",v:config.width+"m"},
-                ...(isOF?[{l:"Depth",v:config.depth+"m"}]:[]),
+                ...(isOF?[{l:"Internal Depth",v:config.depth+"m"}]:[]),
                 {l:"Internal Height",v:config.height+"m"},
                 {l:"Overall Depth",v:totalD+"m"},
                 {l:"Roof Lights",v:totalRoof,accent:"#fbbf24"},
@@ -449,7 +449,7 @@ export default function BoothConfigurator(){
   const[config,setConfig]=useState(getDefaults("open_face"));
   const[showEditor,setShowEditor]=useState(false);
   const[showQuote,setShowQuote]=useState(false);
-  const[showPanel,setShowPanel]=useState(true);
+  const[showPanel,setShowPanel]=useState(function(){return window.innerWidth>=768;});
   const[isMobile,setIsMobile]=useState(false);
   const[darkMode,setDarkMode]=useState(false);
   var theme=darkMode?DARK:LIGHT;
@@ -558,7 +558,7 @@ export default function BoothConfigurator(){
       {(showPanel||!isMobile)&&(
         <div style={{
           width:isMobile?"100%":340,
-          height:isMobile?"85vh":"100%",
+          height:isMobile?"85vh":"100vh",
           position:isMobile?"absolute":"relative",
           bottom:isMobile?0:"auto",
           left:isMobile?0:"auto",
@@ -586,12 +586,12 @@ export default function BoothConfigurator(){
             </div>
           )}
           <div style={{padding:isMobile?"8px 20px 12px":"20px 22px 16px",borderBottom:"1px solid "+BC,background:SB}}><div style={{fontSize:12,fontWeight:700,letterSpacing:"0.15em",color:A,textTransform:"uppercase"}}>Configure</div></div>
-        <div style={{flex:1,overflowY:"auto",padding:"16px 18px",overscrollBehavior:"contain"}}>
+        <div style={{flex:1,overflowY:"auto",minHeight:0,padding:"16px 18px",overscrollBehavior:"contain",WebkitOverflowScrolling:"touch"}}>
           <Sec title="Equipment Type"><div style={{display:"flex",flexDirection:"column",gap:6}}>{BOOTH_TYPES.map(function(t){return(<button key={t.value} onClick={function(){switchType(t.value);}} style={{padding:"12px 14px",border:"2px solid "+(config.boothType===t.value?A:BC),borderRadius:8,background:config.boothType===t.value?"rgba(40,88,165,0.1)":"transparent",color:config.boothType===t.value?A:TS,fontSize:13,fontWeight:600,cursor:"pointer",textAlign:"left",transition:"all 0.2s"}}>{t.label}</button>);})}</div></Sec>
 
           <Sec title="Dimensions">
             <ConfigSlider label="Internal Width" value={config.width} unit="m" onChange={function(v){update("width",v);}} min={limits.width.min} max={limits.width.max} step={limits.width.step}/>
-            {isOF&&limits.depth&&<ConfigSlider label="Depth" value={config.depth} unit="m" onChange={function(v){update("depth",v);}} min={limits.depth.min} max={limits.depth.max} step={limits.depth.step}/>}
+            {isOF&&limits.depth&&<ConfigSlider label="Internal Depth" value={config.depth} unit="m" onChange={function(v){update("depth",v);}} min={limits.depth.min} max={limits.depth.max} step={limits.depth.step}/>}
             <div style={{marginBottom:16}}><span style={{fontSize:13,color:TS,fontWeight:500,display:"block",marginBottom:8}}>Internal Height</span><Seg options={[{label:"2m",value:2},{label:"2.75m",value:2.75}]} value={config.height} onChange={function(v){update("height",v);}}/></div>
             <div style={{borderTop:"1px solid "+BC,marginTop:4,paddingTop:8}}><IR label="Overall Depth (incl. plenum)" value={totalD+"m"}/>{isDesk&&<IR label="Desk Height" value={DESK_LIFT+"m"}/>}{isDesk&&<IR label="Side Panel Depth" value={DESK_WALL_DEPTH+"m"}/>}</div>
           </Sec>
