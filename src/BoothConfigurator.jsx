@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import * as THREE from "three";
 import lowbakeLogo from "./lowbake-logo.png";
+import lowbakeLogoWhite from "./lowbake-logo-white.png";
 
 var PAD_WIDTH=0.75, PAD_HEIGHTS=[1.0,1.2,1.5,2.0], PLENUM_DEPTH=1.05, DESK_PLENUM_DEPTH=0.6;
 var DESK_LIFT=0.9, DESK_SHELF_DEPTH=0.6, DESK_THICK=0.04, DESK_WALL_DEPTH=0.6;
@@ -127,16 +128,19 @@ function buildBooth(group,config){
 }
 
 /* ========== UI ========== */
-var A="#2858a5",PB="#f5f7fa",SB="#ffffff",BC="#dde1e8",TP="#1a2a40",TS="#6b7a8d",ST="#e8ecf1";
-var RED="#e4202a";
+var LIGHT={A:"#2858a5",PB:"#f5f7fa",SB:"#ffffff",BC:"#dde1e8",TP:"#1a2a40",TS:"#6b7a8d",ST:"#e8ecf1",RED:"#e4202a",canvasBg:0xe8ecf2};
+var DARK={A:"#4a7fd4",PB:"#141927",SB:"#1e2538",BC:"#2d3550",TP:"#e8ecf4",TS:"#8b9ab5",ST:"#252d42",RED:"#e4202a",canvasBg:0x141927};
+var ThemeCtx=createContext(LIGHT);
 
-function ConfigSlider({label,value,min,max,step,unit,onChange}){var pct=((value-min)/(max-min))*100;return(<div style={{marginBottom:16}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13,color:TS,fontWeight:500}}>{label}</span><span style={{fontSize:15,color:A,fontFamily:"monospace",fontWeight:600}}>{value}{unit}</span></div><input type="range" min={min} max={max} step={step} value={value} onChange={function(e){onChange(parseFloat(e.target.value));}} style={{width:"100%",height:6,WebkitAppearance:"none",appearance:"none",background:"linear-gradient(to right,"+A+" "+pct+"%,"+ST+" "+pct+"%)",borderRadius:3,outline:"none",cursor:"pointer"}}/></div>);}
-function Seg({options,value,onChange}){return(<div style={{display:"flex",gap:2,background:ST,borderRadius:8,padding:3}}>{options.map(function(o){return(<button key={String(o.value)} onClick={function(){onChange(o.value);}} style={{flex:1,padding:"8px 6px",fontSize:12,fontWeight:600,border:"none",borderRadius:6,cursor:"pointer",transition:"all 0.2s",background:value===o.value?A:"transparent",color:value===o.value?"#fff":TS}}>{o.label}</button>);})}</div>);}
-function Sec({title,icon,children}){return(<div style={{background:SB,borderRadius:10,padding:"16px 18px",marginBottom:12,border:"1px solid "+BC}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,paddingBottom:10,borderBottom:"1px solid "+BC}}>{icon&&<span style={{fontSize:16}}>{icon}</span>}<span style={{fontSize:13,fontWeight:700,color:TP,letterSpacing:"0.08em",textTransform:"uppercase"}}>{title}</span></div>{children}</div>);}
-function IR({label,value}){return(<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0"}}><span style={{fontSize:12,color:TS}}>{label}</span><span style={{fontSize:13,color:TP,fontFamily:"monospace",fontWeight:600}}>{value}</span></div>);}
+function ConfigSlider({label,value,min,max,step,unit,onChange}){var {A,TS,ST}=useContext(ThemeCtx);var pct=((value-min)/(max-min))*100;return(<div style={{marginBottom:16}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:13,color:TS,fontWeight:500}}>{label}</span><span style={{fontSize:15,color:A,fontFamily:"monospace",fontWeight:600}}>{value}{unit}</span></div><input type="range" min={min} max={max} step={step} value={value} onChange={function(e){onChange(parseFloat(e.target.value));}} style={{width:"100%",height:6,WebkitAppearance:"none",appearance:"none",background:"linear-gradient(to right,"+A+" "+pct+"%,"+ST+" "+pct+"%)",borderRadius:3,outline:"none",cursor:"pointer"}}/></div>);}
+function Seg({options,value,onChange}){var {A,ST,TS}=useContext(ThemeCtx);return(<div style={{display:"flex",gap:2,background:ST,borderRadius:8,padding:3}}>{options.map(function(o){return(<button key={String(o.value)} onClick={function(){onChange(o.value);}} style={{flex:1,padding:"8px 6px",fontSize:12,fontWeight:600,border:"none",borderRadius:6,cursor:"pointer",transition:"all 0.2s",background:value===o.value?A:"transparent",color:value===o.value?"#fff":TS}}>{o.label}</button>);})}</div>);}
+function Sec({title,icon,children}){var {SB,BC,TP}=useContext(ThemeCtx);return(<div style={{background:SB,borderRadius:10,padding:"16px 18px",marginBottom:12,border:"1px solid "+BC}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,paddingBottom:10,borderBottom:"1px solid "+BC}}>{icon&&<span style={{fontSize:16}}>{icon}</span>}<span style={{fontSize:13,fontWeight:700,color:TP,letterSpacing:"0.08em",textTransform:"uppercase"}}>{title}</span></div>{children}</div>);}
+function IR({label,value}){var {TS,TP}=useContext(ThemeCtx);return(<div style={{display:"flex",justifyContent:"space-between",padding:"6px 0"}}><span style={{fontSize:12,color:TS}}>{label}</span><span style={{fontSize:13,color:TP,fontFamily:"monospace",fontWeight:600}}>{value}</span></div>);}
 
 /* ========== LIGHTING PLAN VIEW POPUP ========== */
 function LightEditor({width,depth,roofLightConfig,wallLightConfig,maxRoof,numPanels,isDesk,isOF,onUpdateRoof,onUpdateWall,onClose}){
+  const[hovered,setHovered]=useState(null);
+  var {A,PB,SB,BC,TP,TS,ST}=useContext(ThemeCtx);
   var sc=window.innerWidth<768?70:110,pad=window.innerWidth<768?30:50;
   var drawD=isDesk?0.6:Math.max(depth,1);
   var svgW=width*sc+pad*2+(isOF?60:0);
@@ -155,7 +159,7 @@ function LightEditor({width,depth,roofLightConfig,wallLightConfig,maxRoof,numPan
 
   return(
     <div style={{position:"fixed",top:0,left:0,width:"100vw",height:"100vh",background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000}} onClick={onClose}>
-      <div style={{background:"#fff",borderRadius:window.innerWidth<768?"16px 16px 0 0":16,padding:window.innerWidth<768?16:24,maxWidth:600,width:window.innerWidth<768?"100%":"92%",maxHeight:window.innerWidth<768?"95vh":"92vh",overflowY:"auto",border:"1px solid "+BC,boxShadow:"0 20px 60px rgba(0,0,0,0.15)",position:window.innerWidth<768?"fixed":"relative",bottom:window.innerWidth<768?0:"auto",left:window.innerWidth<768?0:"auto",WebkitOverflowScrolling:"touch"}} onClick={function(e){e.stopPropagation();}}>
+      <div style={{background:SB,borderRadius:window.innerWidth<768?"16px 16px 0 0":16,padding:window.innerWidth<768?16:24,maxWidth:600,width:window.innerWidth<768?"100%":"92%",maxHeight:window.innerWidth<768?"95vh":"92vh",overflowY:"auto",border:"1px solid "+BC,boxShadow:"0 20px 60px rgba(0,0,0,0.15)",position:window.innerWidth<768?"fixed":"relative",bottom:window.innerWidth<768?0:"auto",left:window.innerWidth<768?0:"auto",WebkitOverflowScrolling:"touch"}} onClick={function(e){e.stopPropagation();}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
           <div><div style={{fontSize:10,fontWeight:700,letterSpacing:"0.15em",color:A,textTransform:"uppercase",marginBottom:4}}>Lighting Configuration</div><div style={{fontSize:16,fontWeight:700,color:TP}}>Plan View — Looking Down</div></div>
           <button onClick={onClose} style={{background:"none",border:"none",color:TS,fontSize:24,cursor:"pointer",padding:"4px 8px"}}>✕</button>
@@ -171,10 +175,10 @@ function LightEditor({width,depth,roofLightConfig,wallLightConfig,maxRoof,numPan
         </div>
 
         {/* SVG Plan */}
-        <div style={{background:"#f0f2f6",borderRadius:10,padding:12,border:"1px solid "+BC,overflowX:"auto"}}>
-          <svg width={svgW} height={svgH} viewBox={"0 0 "+svgW+" "+svgH} style={{display:"block",margin:"0 auto"}}>
+        <div style={{background:PB,borderRadius:10,padding:12,border:"1px solid "+BC}}>
+          <svg viewBox={"0 0 "+svgW+" "+svgH} style={{display:"block",width:"100%",height:"auto"}}>
             {/* Booth outline */}
-            <rect x={boothX} y={boothY} width={width*sc} height={drawD*sc} fill="#dde2ea" stroke="#9aa4b4" strokeWidth="2" rx="2"/>
+            <rect x={boothX} y={boothY} width={width*sc} height={drawD*sc} fill={ST} stroke={BC} strokeWidth="2" rx="2"/>
             <text x={boothX+width*sc/2} y={boothY-8} textAnchor="middle" fill={TS} fontSize="10" fontFamily="monospace">{width}m width</text>
             <text x={boothX+width*sc/2} y={svgH-4} textAnchor="middle" fill={TS} fontSize="9" fontFamily="monospace">FRONT (open face)</text>
             {isOF&&<text x={boothX-8} y={boothY+drawD*sc/2} textAnchor="middle" fill={TS} fontSize="9" fontFamily="monospace" transform={"rotate(-90,"+(boothX-8)+","+(boothY+drawD*sc/2)+")"}>Left Wall</text>}
@@ -189,18 +193,24 @@ function LightEditor({width,depth,roofLightConfig,wallLightConfig,maxRoof,numPan
               // Roof lights
               var lC=pr.roof;
               if(lC>0){var eg=(width-lC*LIGHT_W)/(lC+1),gp=Math.max(0.02,eg);
-                for(var li=0;li<lC;li++){var lx=gp+LIGHT_W/2+li*(LIGHT_W+gp);
-                  var lxPx=boothX+(lx-LIGHT_W/2)*sc, lyPx=pyPx+(pr.h/2-LIGHT_D/2)*sc;
-                  els.push(<rect key={"rl"+pr.idx+"_"+li} x={lxPx} y={lyPx} width={LIGHT_W*sc} height={LIGHT_D*sc} fill="#fbbf24" rx="3" opacity="0.85"/>);
-                  els.push(<text key={"rlt"+pr.idx+"_"+li} x={lxPx+LIGHT_W*sc/2} y={lyPx+LIGHT_D*sc/2+3} textAnchor="middle" fill="#000" fontSize="8" fontWeight="700" fontFamily="monospace">1200x300</text>);}}
+                for(var li=0;li<lC;li++){
+                  (function(li_){
+                    var lx=gp+LIGHT_W/2+li_*(LIGHT_W+gp);
+                    var lxPx=boothX+(lx-LIGHT_W/2)*sc, lyPx=pyPx+(pr.h/2-LIGHT_D/2)*sc;
+                    var rk="rl"+pr.idx+"_"+li_;
+                    els.push(<rect key={rk} x={lxPx} y={lyPx} width={LIGHT_W*sc} height={LIGHT_D*sc} fill={hovered===rk?"#f5d060":"#fbbf24"} rx="3" style={{cursor:"pointer"}} onMouseEnter={function(){setHovered(rk);}} onMouseLeave={function(){setHovered(null);}} onClick={function(){setRoof(pr.idx,pr.roof<maxRoof?pr.roof+1:0);}}/>);
+                    els.push(<text key={"rlt"+pr.idx+"_"+li_} x={lxPx+LIGHT_W*sc/2} y={lyPx+LIGHT_D*sc/2+3} textAnchor="middle" fill="#000" fontSize="8" fontWeight="700" fontFamily="monospace" style={{pointerEvents:"none"}}>1200x300</text>);
+                  })(li);
+                }}
 
-              // Wall lights (open face only)
+              // Wall light slots (open face only) — always shown, dim when off
               if(isOF){
                 var wl=pr.wall||{left:false,right:false};
                 var wlH=1.2*sc, wlW=0.3*sc;
                 var wlY=pyPx+(pr.h*sc-wlH)/2;
-                if(wl.left)els.push(<rect key={"wl"+pr.idx} x={boothX-wlW/2-2} y={wlY} width={wlW} height={wlH} fill="#60a5fa" rx="2" opacity="0.8"/>);
-                if(wl.right)els.push(<rect key={"wr"+pr.idx} x={boothX+width*sc-wlW/2+2} y={wlY} width={wlW} height={wlH} fill="#60a5fa" rx="2" opacity="0.8"/>);
+                var lk="wl"+pr.idx+"_l", rk2="wl"+pr.idx+"_r";
+                els.push(<rect key={lk} x={boothX-wlW/2-2} y={wlY} width={wlW} height={wlH} fill={wl.left?(hovered===lk?"#93c5fd":"#60a5fa"):(hovered===lk?"#9ab0cc":"#c0cad8")} rx="2" style={{cursor:"pointer"}} onMouseEnter={function(){setHovered(lk);}} onMouseLeave={function(){setHovered(null);}} onClick={function(){setWall(pr.idx,"left",!wl.left);}}/>);
+                els.push(<rect key={rk2} x={boothX+width*sc-wlW/2+2} y={wlY} width={wlW} height={wlH} fill={wl.right?(hovered===rk2?"#93c5fd":"#60a5fa"):(hovered===rk2?"#9ab0cc":"#c0cad8")} rx="2" style={{cursor:"pointer"}} onMouseEnter={function(){setHovered(rk2);}} onMouseLeave={function(){setHovered(null);}} onClick={function(){setWall(pr.idx,"right",!wl.right);}}/>);
               }
               return els;})}
 
@@ -242,30 +252,32 @@ function LightEditor({width,depth,roofLightConfig,wallLightConfig,maxRoof,numPan
 
 /* ========== QUOTE REQUEST MODAL ========== */
 function QuoteMiniPlan({width,depth,roofLightConfig,wallLightConfig,isDesk,isOF,numPanels}){
+  var {TS,A,ST,BC}=useContext(ThemeCtx);
   var sc=window.innerWidth<768?55:80,pad=window.innerWidth<768?25:35;var drawD=isDesk?0.6:Math.max(depth,0.5);
   var svgW=width*sc+pad*2+(isOF?40:0);var svgH=drawD*sc+pad*2;
   var bx=isOF?pad+20:pad,by=pad;
   var panels=[];for(var p=0;p<numPanels;p++){var ph=isDesk?0.6:((p===numPanels-1&&depth%1!==0)?(depth%1):1);panels.push({y:isDesk?0:p*1,h:ph,roof:p<roofLightConfig.length?roofLightConfig[p]:0,wall:p<wallLightConfig.length?wallLightConfig[p]:{left:false,right:false}});}
   return(
     <svg width={svgW} height={svgH} viewBox={"0 0 "+svgW+" "+svgH} style={{display:"block",margin:"0 auto"}}>
-      <rect x={bx} y={by} width={width*sc} height={drawD*sc} fill="#dde2ea" stroke="#9aa4b4" strokeWidth="1.5" rx="2"/>
+      <rect x={bx} y={by} width={width*sc} height={drawD*sc} fill={ST} stroke={BC} strokeWidth="1.5" rx="2"/>
       <text x={bx+width*sc/2} y={by-6} textAnchor="middle" fill={TS} fontSize="8" fontFamily="monospace">{width}m</text>
       {panels.map(function(pr,idx){
         var pyPx=by+pr.y*sc,phPx=pr.h*sc;var els=[];
         if(idx>0)els.push(<line key={"d"+idx} x1={bx} y1={pyPx} x2={bx+width*sc} y2={pyPx} stroke="#b0b8c4" strokeWidth="1" strokeDasharray="3,3"/>);
         if(pr.roof>0){var eg=(width-pr.roof*LIGHT_W)/(pr.roof+1),gp=Math.max(0.02,eg);
-          for(var li=0;li<pr.roof;li++){var lx=gp+LIGHT_W/2+li*(LIGHT_W+gp);els.push(<rect key={"r"+idx+"_"+li} x={bx+(lx-LIGHT_W/2)*sc} y={pyPx+(pr.h/2-LIGHT_D/2)*sc} width={LIGHT_W*sc} height={LIGHT_D*sc} fill="#fbbf24" rx="2" opacity="0.85"/>);}}
+          for(var li=0;li<pr.roof;li++){var lx=gp+LIGHT_W/2+li*(LIGHT_W+gp);els.push(<rect key={"r"+idx+"_"+li} x={bx+(lx-LIGHT_W/2)*sc} y={pyPx+(pr.h/2-LIGHT_D/2)*sc} width={LIGHT_W*sc} height={LIGHT_D*sc} fill={A} rx="2" opacity="0.85"/>);}}
         if(isOF){var wl=pr.wall||{};var wlH=1.0*sc,wlW=0.2*sc,wlY=pyPx+(phPx-wlH)/2;
-          if(wl.left)els.push(<rect key={"wl"+idx} x={bx-wlW/2-1} y={wlY} width={wlW} height={wlH} fill="#60a5fa" rx="1" opacity="0.8"/>);
-          if(wl.right)els.push(<rect key={"wr"+idx} x={bx+width*sc-wlW/2+1} y={wlY} width={wlW} height={wlH} fill="#60a5fa" rx="1" opacity="0.8"/>);}
+          if(wl.left)els.push(<rect key={"wl"+idx} x={bx-wlW/2-1} y={wlY} width={wlW} height={wlH} fill={A} rx="1" opacity="0.8"/>);
+          if(wl.right)els.push(<rect key={"wr"+idx} x={bx+width*sc-wlW/2+1} y={wlY} width={wlW} height={wlH} fill={A} rx="1" opacity="0.8"/>);}
         return els;})}
-      <rect x={3} y={svgH-16} width={8} height={5} fill="#fbbf24" rx="1"/><text x={14} y={svgH-11} fill={TS} fontSize="7" fontFamily="monospace">Roof</text>
-      {isOF&&<><rect x={50} y={svgH-16} width={8} height={5} fill="#60a5fa" rx="1"/><text x={61} y={svgH-11} fill={TS} fontSize="7" fontFamily="monospace">Wall</text></>}
+      <rect x={3} y={svgH-16} width={8} height={5} fill={A} rx="1"/><text x={14} y={svgH-11} fill={TS} fontSize="7" fontFamily="monospace">Roof</text>
+      {isOF&&<><rect x={50} y={svgH-16} width={8} height={5} fill={A} rx="1"/><text x={61} y={svgH-11} fill={TS} fontSize="7" fontFamily="monospace">Wall</text></>}
     </svg>
   );
 }
 
 function QuoteModal({config,onClose,boothLabel,totalRoof,totalWall,fCols,activePD,totalD,numPanels}){
+  var {A,PB,SB,BC,TP,TS,RED}=useContext(ThemeCtx);
   var isDesk=config.boothType==="desk_booth",isOF=config.boothType==="open_face";
   const[step,setStep]=useState(1);
   const[form,setForm]=useState({name:"",company:"",phone:"",email:""});
@@ -319,11 +331,11 @@ function QuoteModal({config,onClose,boothLabel,totalRoof,totalWall,fCols,activeP
     setTimeout(function(){setSending(false);setSent(true);},1500);
   }
 
-  var inputStyle={width:"100%",padding:"10px 14px",fontSize:14,border:"1px solid "+BC,borderRadius:8,background:"#fff",color:TP,outline:"none",fontFamily:"inherit",boxSizing:"border-box"};
+  var inputStyle={width:"100%",padding:"10px 14px",fontSize:14,border:"1px solid "+BC,borderRadius:8,background:SB,color:TP,outline:"none",fontFamily:"inherit",boxSizing:"border-box"};
 
   return(
     <div style={{position:"fixed",top:0,left:0,width:"100vw",height:"100vh",background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000}} onClick={onClose}>
-      <div style={{background:"#fff",borderRadius:window.innerWidth<768?"16px 16px 0 0":16,padding:0,maxWidth:560,width:window.innerWidth<768?"100%":"92%",maxHeight:window.innerWidth<768?"95vh":"92vh",overflowY:"auto",border:"1px solid "+BC,boxShadow:"0 20px 60px rgba(0,0,0,0.15)",position:window.innerWidth<768?"fixed":"relative",bottom:window.innerWidth<768?0:"auto",left:window.innerWidth<768?0:"auto",WebkitOverflowScrolling:"touch"}} onClick={function(e){e.stopPropagation();}}>
+      <div style={{background:SB,borderRadius:window.innerWidth<768?"16px 16px 0 0":16,padding:0,maxWidth:560,width:window.innerWidth<768?"100%":"92%",maxHeight:window.innerWidth<768?"95vh":"92vh",overflowY:"auto",border:"1px solid "+BC,boxShadow:"0 20px 60px rgba(0,0,0,0.15)",position:window.innerWidth<768?"fixed":"relative",bottom:window.innerWidth<768?0:"auto",left:window.innerWidth<768?0:"auto",WebkitOverflowScrolling:"touch"}} onClick={function(e){e.stopPropagation();}}>
 
         {/* Header */}
         <div style={{padding:"20px 24px 16px",borderBottom:"1px solid "+BC,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -426,7 +438,11 @@ export default function BoothConfigurator(){
   const[showQuote,setShowQuote]=useState(false);
   const[showPanel,setShowPanel]=useState(true);
   const[isMobile,setIsMobile]=useState(false);
+  const[darkMode,setDarkMode]=useState(false);
+  var theme=darkMode?DARK:LIGHT;
+  var {A,PB,SB,BC,TP,TS,ST,RED}=theme;
   const pinchRef=useRef({active:false,startDist:0,startRadius:0});
+  const swipeRef=useRef({startY:0});
   const canvasRef=useRef(null),sceneRef=useRef({}),boothCenter=useRef(new THREE.Vector3(0,1.5,0)),boothSize=useRef(5);
   const cameraState=useRef({theta:Math.PI*0.25,phi:Math.PI*0.22,radius:0,panX:0,panY:0}),dragRef=useRef({active:false,lastX:0,lastY:0,shift:false});
 
@@ -465,9 +481,10 @@ export default function BoothConfigurator(){
     });
   },[]);
 
-  var updateCamera=useCallback(function(){var cam=sceneRef.current.camera;if(!cam)return;var s=cameraState.current,c=boothCenter.current,sz=boothSize.current;if(s.radius<=0)s.radius=sz*2+2;s.radius=Math.max(2,Math.min(30,s.radius));if(s.panY<0)s.panY=0;var r=s.radius,tx=c.x+s.panX,ty=c.y+s.panY,tz=c.z;var mC=(0.5-ty)/r;var mP=mC>=1?0.15:mC<=-1?Math.PI*0.48:Math.min(Math.PI*0.48,Math.acos(mC));s.phi=Math.max(0.08,Math.min(mP,s.phi));cam.position.set(tx+r*Math.sin(s.phi)*Math.sin(s.theta),ty+r*Math.cos(s.phi),tz+r*Math.sin(s.phi)*Math.cos(s.theta));cam.lookAt(new THREE.Vector3(tx,ty,tz));},[]);
+  var updateCamera=useCallback(function(){var cam=sceneRef.current.camera;if(!cam)return;var s=cameraState.current,c=boothCenter.current,sz=boothSize.current;s.radius=Math.max(2,Math.min(30,s.radius));if(s.panY<0)s.panY=0;var r=s.radius,tx=c.x+s.panX,ty=c.y+s.panY,tz=c.z;var mC=(0.5-ty)/r;var mP=mC>=1?0.15:mC<=-1?Math.PI*0.48:Math.min(Math.PI*0.48,Math.acos(mC));s.phi=Math.max(0.08,Math.min(mP,s.phi));cam.position.set(tx+r*Math.sin(s.phi)*Math.sin(s.theta),ty+r*Math.cos(s.phi),tz+r*Math.sin(s.phi)*Math.cos(s.theta));cam.lookAt(new THREE.Vector3(tx,ty,tz));},[]);
 
-  useEffect(function(){var cv=canvasRef.current;if(!cv)return;var rr=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:false});rr.setPixelRatio(Math.min(window.devicePixelRatio,2));rr.setClearColor(0xe8ecf2);rr.shadowMap.enabled=true;rr.shadowMap.type=THREE.PCFSoftShadowMap;rr.toneMapping=THREE.ACESFilmicToneMapping;rr.toneMappingExposure=1.3;var sc=new THREE.Scene();sc.fog=new THREE.Fog(0xe8ecf2,20,50);var cm=new THREE.PerspectiveCamera(45,1,0.1,100);sc.add(new THREE.AmbientLight(0xc8d0e0,0.7));var dl=new THREE.DirectionalLight(0xfff8f0,1.0);dl.position.set(6,10,8);dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);dl.shadow.camera.near=0.1;dl.shadow.camera.far=30;dl.shadow.camera.left=-10;dl.shadow.camera.right=10;dl.shadow.camera.top=10;dl.shadow.camera.bottom=-5;sc.add(dl);var fl=new THREE.DirectionalLight(0xc0d0ff,0.3);fl.position.set(-5,4,-3);sc.add(fl);var bl=new THREE.DirectionalLight(0xffeedd,0.15);bl.position.set(0,3,-6);sc.add(bl);var gr=new THREE.Mesh(new THREE.PlaneGeometry(50,50),new THREE.MeshStandardMaterial({color:0xc8ccd4,roughness:0.95}));gr.rotation.x=-Math.PI/2;gr.position.y=-0.02;gr.receiveShadow=true;sc.add(gr);var gd=new THREE.GridHelper(30,30,0xb0b8c4,0xbcc4d0);gd.position.y=-0.01;gd.material.opacity=0.3;gd.material.transparent=true;sc.add(gd);var bg=new THREE.Group();sc.add(bg);sceneRef.current={renderer:rr,scene:sc,camera:cm,boothGroup:bg};var rs=function(){var p=cv.parentElement;if(!p)return;rr.setSize(p.clientWidth,p.clientHeight);cm.aspect=p.clientWidth/p.clientHeight;cm.updateProjectionMatrix();};var ro=new ResizeObserver(rs);ro.observe(cv.parentElement);rs();var id;var lp=function(){id=requestAnimationFrame(lp);rr.render(sc,cm);};lp();return function(){cancelAnimationFrame(id);ro.disconnect();rr.dispose();};},[]);
+  useEffect(function(){var cv=canvasRef.current;if(!cv)return;var rr=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:false});rr.setPixelRatio(Math.min(window.devicePixelRatio,2));rr.setClearColor(0xe8ecf2);rr.shadowMap.enabled=true;rr.shadowMap.type=THREE.PCFSoftShadowMap;rr.toneMapping=THREE.ACESFilmicToneMapping;rr.toneMappingExposure=1.3;var sc=new THREE.Scene();sc.fog=new THREE.Fog(0xe8ecf2,20,50);var cm=new THREE.PerspectiveCamera(45,1,0.1,100);sc.add(new THREE.AmbientLight(0xc8d0e0,0.7));var dl=new THREE.DirectionalLight(0xfff8f0,1.0);dl.position.set(6,10,8);dl.castShadow=true;dl.shadow.mapSize.set(2048,2048);dl.shadow.camera.near=0.1;dl.shadow.camera.far=30;dl.shadow.camera.left=-10;dl.shadow.camera.right=10;dl.shadow.camera.top=10;dl.shadow.camera.bottom=-5;sc.add(dl);var fl=new THREE.DirectionalLight(0xc0d0ff,0.3);fl.position.set(-5,4,-3);sc.add(fl);var bl=new THREE.DirectionalLight(0xffeedd,0.15);bl.position.set(0,3,-6);sc.add(bl);var gr=new THREE.Mesh(new THREE.PlaneGeometry(50,50),new THREE.MeshStandardMaterial({color:0xc8ccd4,roughness:0.95}));gr.rotation.x=-Math.PI/2;gr.position.y=-0.02;gr.receiveShadow=true;sc.add(gr);var gd=new THREE.GridHelper(30,30,0xb0b8c4,0xbcc4d0);gd.position.y=-0.01;gd.material.opacity=0.3;gd.material.transparent=true;sc.add(gd);var bg=new THREE.Group();sc.add(bg);sceneRef.current={renderer:rr,scene:sc,camera:cm,boothGroup:bg,groundMat:gr.material,grid:gd};var rs=function(){var p=cv.parentElement;if(!p)return;rr.setSize(p.clientWidth,p.clientHeight);cm.aspect=p.clientWidth/p.clientHeight;cm.updateProjectionMatrix();};var ro=new ResizeObserver(rs);ro.observe(cv.parentElement);rs();var id;var lp=function(){id=requestAnimationFrame(lp);rr.render(sc,cm);};lp();return function(){cancelAnimationFrame(id);ro.disconnect();rr.dispose();};},[]);
+  useEffect(function(){var sr=sceneRef.current;if(!sr.renderer)return;var bg=theme.canvasBg;sr.renderer.setClearColor(bg);if(sr.scene&&sr.scene.fog)sr.scene.fog.color.setHex(bg);if(sr.groundMat)sr.groundMat.color.setHex(darkMode?0x252d42:0xc8ccd4);if(sr.grid){sr.grid.material.opacity=darkMode?0.12:0.3;};},[darkMode]);
   useEffect(function(){var cv=canvasRef.current;if(!cv)return;
     var dn=function(e){dragRef.current={active:true,lastX:e.clientX,lastY:e.clientY,shift:e.shiftKey};};
     var mv=function(e){if(!dragRef.current.active)return;var dx=e.clientX-dragRef.current.lastX,dy=e.clientY-dragRef.current.lastY;if(dragRef.current.shift||e.shiftKey){var ps=cameraState.current.radius*0.002;cameraState.current.panX-=dx*ps;cameraState.current.panY+=dy*ps;if(cameraState.current.panY<0)cameraState.current.panY=0;}else{cameraState.current.theta-=dx*0.005;cameraState.current.phi-=dy*0.005;}dragRef.current.lastX=e.clientX;dragRef.current.lastY=e.clientY;updateCamera();};
@@ -495,11 +512,19 @@ export default function BoothConfigurator(){
   if(config.wallLightConfig)for(var j=0;j<config.wallLightConfig.length;j++){if(config.wallLightConfig[j].left)totalWall++;if(config.wallLightConfig[j].right)totalWall++;}
 
   return(
-    <div style={{display:"flex",flexDirection:isMobile?"column":"row",height:"100vh",width:"100vw",background:"#e8ecf2",fontFamily:"'Segoe UI','SF Pro Display',system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
+    <ThemeCtx.Provider value={theme}>
+    <div style={{display:"flex",flexDirection:isMobile?"column":"row",height:"100vh",width:"100vw",background:darkMode?"#0e1420":PB,fontFamily:"'Segoe UI','SF Pro Display',system-ui,sans-serif",overflow:"hidden",position:"relative"}}>
       {/* 3D Viewport */}
       <div style={{flex:1,position:"relative",minWidth:0,minHeight:isMobile?"100vh":"auto"}}>
         <canvas ref={canvasRef} style={{display:"block",width:"100%",height:"100%",cursor:"grab",touchAction:"none"}}/>
-        <div style={{position:"absolute",top:isMobile?12:20,left:isMobile?16:24,pointerEvents:"none"}}><img src={lowbakeLogo} alt="Lowbake" style={{height:isMobile?28:36,display:"block",opacity:0.95}}/><div style={{fontSize:isMobile?14:16,fontWeight:700,color:"#1a2a40",marginTop:4}}>{boothLabel}</div></div>
+        <div style={{position:"absolute",top:isMobile?12:20,left:isMobile?16:24,pointerEvents:"none"}}><img src={darkMode?lowbakeLogoWhite:lowbakeLogo} alt="Lowbake" style={{height:isMobile?28:36,maxWidth:isMobile?"45vw":"200px",display:"block",opacity:0.95,pointerEvents:"none"}}/><div style={{fontSize:isMobile?14:16,fontWeight:700,color:TP,marginTop:4}}>{boothLabel}</div></div>
+        {/* Dark mode toggle */}
+        <div onClick={function(){setDarkMode(function(d){return !d;});}} style={{position:"absolute",top:isMobile?12:20,right:isMobile?16:24,display:"flex",alignItems:"center",gap:7,cursor:"pointer",userSelect:"none",background:darkMode?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:20,padding:"5px 12px",backdropFilter:"blur(4px)"}}>
+          <span style={{fontSize:11,fontWeight:600,color:darkMode?"#e8ecf4":"#1a2a40",letterSpacing:"0.04em"}}>{darkMode?"Light Mode":"Dark Mode"}</span>
+          <div style={{width:34,height:18,borderRadius:9,background:darkMode?"#4a7fd4":"rgba(0,0,0,0.25)",position:"relative",transition:"background 0.25s",flexShrink:0}}>
+            <div style={{position:"absolute",top:2,left:darkMode?16:2,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.25s",boxShadow:"0 1px 3px rgba(0,0,0,0.3)"}}/>
+          </div>
+        </div>
         {/* Controls hint — desktop only */}
         {!isMobile&&<div style={{position:"absolute",bottom:16,left:24,pointerEvents:"none",display:"flex",gap:16}}>{[["Drag","Rotate"],["Shift+Drag","Pan"],["Scroll","Zoom"]].map(function(pr){return(<div key={pr[1]} style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:10,color:"#fff",background:"rgba(40,88,165,0.7)",padding:"3px 8px",borderRadius:4,fontWeight:600}}>{pr[0]}</span><span style={{fontSize:11,color:"#4a5568"}}>{pr[1]}</span></div>);})}</div>}
         {/* Mobile: floating configure button */}
@@ -535,12 +560,19 @@ export default function BoothConfigurator(){
         }}>
           {/* Mobile drag handle + close */}
           {isMobile&&(
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 20px 8px"}}>
-              <div style={{width:40,height:4,background:BC,borderRadius:2,margin:"0 auto"}}/>
-              <button onClick={function(){setShowPanel(false);}} style={{position:"absolute",right:16,top:12,background:"none",border:"none",color:TS,fontSize:22,cursor:"pointer",padding:"4px"}}>✕</button>
+            <div
+              style={{display:"flex",alignItems:"center",padding:"12px 16px 10px"}}
+              onTouchStart={function(e){swipeRef.current.startY=e.touches[0].clientY;}}
+              onTouchMove={function(e){if(e.touches[0].clientY-swipeRef.current.startY>80)setShowPanel(false);}}
+            >
+              <div style={{flex:1}}/>
+              <div style={{width:44,height:5,background:BC,borderRadius:3}}/>
+              <div style={{flex:1,display:"flex",justifyContent:"flex-end"}}>
+                <button onClick={function(){setShowPanel(false);}} style={{background:"none",border:"none",color:TS,fontSize:22,cursor:"pointer",padding:"4px 0",lineHeight:1}}>✕</button>
+              </div>
             </div>
           )}
-          <div style={{padding:isMobile?"8px 20px 12px":"20px 22px 16px",borderBottom:"1px solid "+BC,background:"#fff"}}><div style={{fontSize:12,fontWeight:700,letterSpacing:"0.15em",color:A,textTransform:"uppercase"}}>Configure</div></div>
+          <div style={{padding:isMobile?"8px 20px 12px":"20px 22px 16px",borderBottom:"1px solid "+BC,background:SB}}><div style={{fontSize:12,fontWeight:700,letterSpacing:"0.15em",color:A,textTransform:"uppercase"}}>Configure</div></div>
         <div style={{flex:1,overflowY:"auto",padding:"16px 18px",overscrollBehavior:"contain"}}>
           <Sec title="Equipment Type"><div style={{display:"flex",flexDirection:"column",gap:6}}>{BOOTH_TYPES.map(function(t){return(<button key={t.value} onClick={function(){switchType(t.value);}} style={{padding:"12px 14px",border:"2px solid "+(config.boothType===t.value?A:BC),borderRadius:8,background:config.boothType===t.value?"rgba(40,88,165,0.1)":"transparent",color:config.boothType===t.value?A:TS,fontSize:13,fontWeight:600,cursor:"pointer",textAlign:"left",transition:"all 0.2s"}}>{t.label}</button>);})}</div></Sec>
 
@@ -606,5 +638,6 @@ export default function BoothConfigurator(){
 
       <style>{"input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:"+A+";cursor:pointer;border:2px solid #fff;box-shadow:0 0 6px rgba(40,88,165,0.4);margin-top:-5px}input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:"+A+";cursor:pointer;border:2px solid #fff}input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px}div::-webkit-scrollbar{width:6px}div::-webkit-scrollbar-track{background:transparent}div::-webkit-scrollbar-thumb{background:"+BC+";border-radius:3px}@media(max-width:767px){input[type=range]::-webkit-slider-thumb{width:22px;height:22px;margin-top:-8px}input[type=range]{height:8px}}"}</style>
     </div>
+    </ThemeCtx.Provider>
   );
 }
