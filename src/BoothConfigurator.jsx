@@ -371,17 +371,20 @@ function QuoteModal({config,onClose,boothLabel,totalRoof,totalWall,fCols,activeP
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
               {[
                 {l:"Equipment",v:boothLabel},
-                {l:"Width",v:config.width+"m"},
+                {l:"Internal Width",v:config.width+"m"},
                 ...(isOF?[{l:"Depth",v:config.depth+"m"}]:[]),
-                {l:"Height",v:config.height+"m"},
+                {l:"Internal Height",v:config.height+"m"},
                 {l:"Overall Depth",v:totalD+"m"},
-                {l:"Roof Lights",v:totalRoof},
-                ...(isOF?[{l:"Wall Lights",v:totalWall}]:[]),
+                {l:"Roof Lights",v:totalRoof,accent:"#fbbf24"},
+                ...(isOF?[{l:"Wall Lights",v:totalWall,accent:"#60a5fa"}]:[]),
                 {l:"Filter Pads",v:fCols+" × "+config.filterPadHeight+"m"},
                 {l:"Plenum Depth",v:activePD+"m"},
               ].map(function(item){return(
-                <div key={item.l} style={{background:"#f5f7fa",borderRadius:6,padding:"8px 12px",border:"1px solid "+BC}}>
-                  <div style={{fontSize:10,color:TS,fontWeight:600,letterSpacing:"0.04em",marginBottom:2}}>{item.l}</div>
+                <div key={item.l} style={{background:item.accent?"rgba(0,0,0,0.03)":PB,borderRadius:6,padding:"8px 12px",border:"2px solid "+(item.accent||BC)}}>
+                  <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:2}}>
+                    {item.accent&&<div style={{width:8,height:8,borderRadius:2,background:item.accent,flexShrink:0}}/>}
+                    <div style={{fontSize:10,color:TS,fontWeight:600,letterSpacing:"0.04em"}}>{item.l}</div>
+                  </div>
                   <div style={{fontSize:14,color:TP,fontWeight:600}}>{item.v}</div>
                 </div>
               );})
@@ -555,7 +558,7 @@ export default function BoothConfigurator(){
       {(showPanel||!isMobile)&&(
         <div style={{
           width:isMobile?"100%":340,
-          height:isMobile?"85vh":"auto",
+          height:isMobile?"85vh":"100%",
           position:isMobile?"absolute":"relative",
           bottom:isMobile?0:"auto",
           left:isMobile?0:"auto",
@@ -589,7 +592,7 @@ export default function BoothConfigurator(){
           <Sec title="Dimensions">
             <ConfigSlider label="Internal Width" value={config.width} unit="m" onChange={function(v){update("width",v);}} min={limits.width.min} max={limits.width.max} step={limits.width.step}/>
             {isOF&&limits.depth&&<ConfigSlider label="Depth" value={config.depth} unit="m" onChange={function(v){update("depth",v);}} min={limits.depth.min} max={limits.depth.max} step={limits.depth.step}/>}
-            <div style={{marginBottom:16}}><span style={{fontSize:13,color:TS,fontWeight:500,display:"block",marginBottom:8}}>Height</span><Seg options={[{label:"2m",value:2},{label:"2.75m",value:2.75}]} value={config.height} onChange={function(v){update("height",v);}}/></div>
+            <div style={{marginBottom:16}}><span style={{fontSize:13,color:TS,fontWeight:500,display:"block",marginBottom:8}}>Internal Height</span><Seg options={[{label:"2m",value:2},{label:"2.75m",value:2.75}]} value={config.height} onChange={function(v){update("height",v);}}/></div>
             <div style={{borderTop:"1px solid "+BC,marginTop:4,paddingTop:8}}><IR label="Overall Depth (incl. plenum)" value={totalD+"m"}/>{isDesk&&<IR label="Desk Height" value={DESK_LIFT+"m"}/>}{isDesk&&<IR label="Side Panel Depth" value={DESK_WALL_DEPTH+"m"}/>}</div>
           </Sec>
 
