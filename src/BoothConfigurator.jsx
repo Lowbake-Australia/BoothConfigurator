@@ -159,20 +159,27 @@ function LightEditor({width,depth,roofLightConfig,wallLightConfig,maxRoof,numPan
 
   return(
     <div style={{position:"fixed",top:0,left:0,width:"100vw",height:"100vh",background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000}} onClick={onClose}>
-      <div style={{background:SB,borderRadius:window.innerWidth<768?"16px 16px 0 0":16,padding:window.innerWidth<768?16:24,maxWidth:600,width:window.innerWidth<768?"100%":"92%",maxHeight:window.innerWidth<768?"95vh":"92vh",overflowY:"auto",border:"1px solid "+BC,boxShadow:"0 20px 60px rgba(0,0,0,0.15)",position:window.innerWidth<768?"fixed":"relative",bottom:window.innerWidth<768?0:"auto",left:window.innerWidth<768?0:"auto",WebkitOverflowScrolling:"touch"}} onClick={function(e){e.stopPropagation();}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div><div style={{fontSize:10,fontWeight:700,letterSpacing:"0.15em",color:A,textTransform:"uppercase",marginBottom:4}}>Lighting Configuration</div><div style={{fontSize:16,fontWeight:700,color:TP}}>Plan View — Looking Down</div></div>
-          <button onClick={onClose} style={{background:"none",border:"none",color:TS,fontSize:24,cursor:"pointer",padding:"4px 8px"}}>✕</button>
+      <div style={{background:SB,borderRadius:window.innerWidth<768?"16px 16px 0 0":16,padding:0,maxWidth:600,width:window.innerWidth<768?"100%":"92%",maxHeight:window.innerWidth<768?"95vh":"92vh",display:"flex",flexDirection:"column",border:"1px solid "+BC,boxShadow:"0 20px 60px rgba(0,0,0,0.15)",position:window.innerWidth<768?"fixed":"relative",bottom:window.innerWidth<768?0:"auto",left:window.innerWidth<768?0:"auto",overflow:"hidden"}} onClick={function(e){e.stopPropagation();}}>
+
+        {/* Fixed header */}
+        <div style={{padding:window.innerWidth<768?"16px 16px 12px":"24px 24px 12px",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <div><div style={{fontSize:10,fontWeight:700,letterSpacing:"0.15em",color:A,textTransform:"uppercase",marginBottom:4}}>Lighting Configuration</div><div style={{fontSize:16,fontWeight:700,color:TP}}>Plan View — Looking Down</div></div>
+            <button onClick={onClose} style={{background:"none",border:"none",color:TS,fontSize:24,cursor:"pointer",padding:"4px 8px"}}>✕</button>
+          </div>
+
+          {/* Quick set */}
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <span style={{fontSize:12,color:TS,alignSelf:"center"}}>Roof:</span>
+            {[0,1].concat(maxRoof>=2?[2]:[]).map(function(n){return(<button key={"r"+n} onClick={function(){setAllRoof(n);}} style={{padding:"5px 12px",fontSize:11,fontWeight:600,border:"1px solid "+BC,borderRadius:6,background:SB,color:TP,cursor:"pointer"}}>{n===0?"None":n}</button>);})}
+            {isOF&&<><span style={{fontSize:12,color:TS,alignSelf:"center",marginLeft:8}}>Walls:</span>
+            <button onClick={function(){setAllWall(true);}} style={{padding:"5px 12px",fontSize:11,fontWeight:600,border:"1px solid "+BC,borderRadius:6,background:SB,color:TP,cursor:"pointer"}}>All On</button>
+            <button onClick={function(){setAllWall(false);}} style={{padding:"5px 12px",fontSize:11,fontWeight:600,border:"1px solid "+BC,borderRadius:6,background:SB,color:TP,cursor:"pointer"}}>All Off</button></>}
+          </div>
         </div>
 
-        {/* Quick set */}
-        <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
-          <span style={{fontSize:12,color:TS,alignSelf:"center"}}>Roof:</span>
-          {[0,1].concat(maxRoof>=2?[2]:[]).map(function(n){return(<button key={"r"+n} onClick={function(){setAllRoof(n);}} style={{padding:"5px 12px",fontSize:11,fontWeight:600,border:"1px solid "+BC,borderRadius:6,background:SB,color:TP,cursor:"pointer"}}>{n===0?"None":n}</button>);})}
-          {isOF&&<><span style={{fontSize:12,color:TS,alignSelf:"center",marginLeft:8}}>Walls:</span>
-          <button onClick={function(){setAllWall(true);}} style={{padding:"5px 12px",fontSize:11,fontWeight:600,border:"1px solid "+BC,borderRadius:6,background:SB,color:TP,cursor:"pointer"}}>All On</button>
-          <button onClick={function(){setAllWall(false);}} style={{padding:"5px 12px",fontSize:11,fontWeight:600,border:"1px solid "+BC,borderRadius:6,background:SB,color:TP,cursor:"pointer"}}>All Off</button></>}
-        </div>
+        {/* Scrollable content */}
+        <div style={{flex:1,overflowY:"auto",padding:window.innerWidth<768?"0 16px":"0 24px",WebkitOverflowScrolling:"touch"}}>
 
         {/* SVG Plan */}
         <div style={{background:PB,borderRadius:10,padding:12,border:"1px solid "+BC}}>
@@ -241,8 +248,11 @@ function LightEditor({width,depth,roofLightConfig,wallLightConfig,maxRoof,numPan
               </div>);
           })}
         </div>
+        <div style={{height:8}}/>
+        </div>{/* end scrollable */}
 
-        <div style={{marginTop:16,display:"flex",justifyContent:"flex-end"}}>
+        {/* Sticky footer */}
+        <div style={{padding:window.innerWidth<768?"12px 16px":"16px 24px",borderTop:"1px solid "+BC,flexShrink:0,display:"flex",justifyContent:"flex-end",background:SB}}>
           <button onClick={onClose} style={{padding:"10px 24px",background:A,color:"#fff",border:"none",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer"}}>Done</button>
         </div>
       </div>
